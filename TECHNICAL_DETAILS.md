@@ -13,7 +13,8 @@ graph TD
     OCR_Check -->|No| Gemini[Gemini OCR API]
     Gemini -->|Fallback Loop| Txt
     
-    UI --> Img[Image Input]
+    UI --> Img[Image Input (Optional)]
+    Img -.->|If None: Black Image| MMBT
     
     subgraph Core Model
     Img --> MMBT[MMBT-CLIP Model]

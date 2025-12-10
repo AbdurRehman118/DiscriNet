@@ -45,8 +45,9 @@ Launch the Gradio UI to test the model with your own memes.
 ```powershell
 python app.py
 ```
-- **OCR**: Leave the "Caption" field empty. The app will use Gemini to extract text automatically.
-- **Policy**: The result will show which policy was matched and if it triggered a "Policy Boost".
+- **OCR**: Leave the "Caption" field empty to auto-extract text via Gemini.
+- **Caption-Only**: Leave the "Image" blank to test the model on text alone (uses a dummy black image internally).
+- **Policy**: The result shows if a "Policy Boost" was triggered.
 
 ### 2. Training
 To retrain the model on the Facebook Memes dataset:

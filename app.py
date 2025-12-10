@@ -68,50 +68,52 @@ genai.configure(api_key=GEMINI_KEY)
 print("Initialized Gemini OCR Integration.")
 
 def predict(image, text):
-    if image is None: return "Please upload an image."
-    
-    # OCR Fallback (Gemini)
-    ocr_source = ""
-    # Ensure text fallback
-    if not text: text = ""
-    
-    # OCR Fallback (Gemini)
-    ocr_source = ""
-    # Ensure text fallback
-    if not text: text = ""
-    
-    # List of models to try (fallback strategy for Free Tier)
-    GEMINI_MODELS = [
-        "gemini-2.0-flash-lite-preview-02-05", # Often free/unlimited in preview
-        "gemini-2.0-flash-exp",           # Experimental often has separate quota
-        "gemini-flash-latest",            # Alias to stable flash
-        "gemini-1.5-flash-latest"         # Fallback alias
-    ]
+    # Handle Text-Only Input (No Image)
+    if image is None:
+        if not text or text.strip() == "":
+            return "Please provide either an image or a caption."
+        # Create dummy black image for CLIP (Visual signal = 0)
+        image = Image.new('RGB', (224, 224), color='black')
+        ocr_source = "(Text Only Mode - No Image Provided)"
+        print("Text Only Mode: Using dummy black image.")
+    else:
+        # OCR Fallback (Gemini) only if image exists
+        ocr_source = ""
+        # Ensure text fallback
+        if not text: text = ""
+        
+        # List of models to try (fallback strategy for Free Tier)
+        GEMINI_MODELS = [
+            "gemini-2.0-flash-lite-preview-02-05", # Often free/unlimited in preview
+            "gemini-2.0-flash-exp",           # Experimental often has separate quota
+            "gemini-flash-latest",            # Alias to stable flash
+            "gemini-1.5-flash-latest"         # Fallback alias
+        ]
 
-    if text.strip() == "":
-        print("No text provided. Running Gemini OCR...")
-        success = False
-        last_error = ""
-        
-        for model_name in GEMINI_MODELS:
-            print(f"Trying Gemini Model: {model_name}...")
-            try:
-                gemini_model = genai.GenerativeModel(model_name)
-                # Gemini accepts PIL Image directly
-                response = gemini_model.generate_content(["Extract all text from this image exactly as it appears.", image])
-                text = response.text.strip()
-                ocr_source = f"(Extracted via {model_name})"
-                print(f"Gemini Extraction Success: {text}")
-                success = True
-                break # Stop if successful
-            except Exception as e:
-                print(f"Failed with {model_name}: {e}")
-                last_error = str(e)
-                # Continue to next model
-        
-        if not success:
-             text = " "
-             ocr_source = f"(OCR Failed: All models exhausted. Last error: {last_error[:50]}...)"
+        if text.strip() == "":
+            print("No text provided. Running Gemini OCR...")
+            success = False
+            last_error = ""
+            
+            for model_name in GEMINI_MODELS:
+                print(f"Trying Gemini Model: {model_name}...")
+                try:
+                    gemini_model = genai.GenerativeModel(model_name)
+                    # Gemini accepts PIL Image directly
+                    response = gemini_model.generate_content(["Extract all text from this image exactly as it appears.", image])
+                    text = response.text.strip()
+                    ocr_source = f"(Extracted via {model_name})"
+                    print(f"Gemini Extraction Success: {text}")
+                    success = True
+                    break # Stop if successful
+                except Exception as e:
+                    print(f"Failed with {model_name}: {e}")
+                    last_error = str(e)
+                    # Continue to next model
+            
+            if not success:
+                 text = " "
+                 ocr_source = f"(OCR Failed: All models exhausted. Last error: {last_error[:50]}...)"
         
     if not text: text = " " # Fallback if OCR fails
     
